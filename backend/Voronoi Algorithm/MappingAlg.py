@@ -35,7 +35,7 @@ from geovoronoi import voronoi_regions_from_coords
 
 EQ_AREA_CRS = "EPSG:5070"   # NAD83 / Conus Albers
 WGS84 = "EPSG:4326"
-TIGER_URL = "https://www2.census.gov/geo/tiger/TIGER2022/BG/tl_2022_us_bg.zip"
+TIGER_URL = "https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_bg_500k.zip"
 
 def project_root() -> str:
     # project root = directory that contains package.json or .git if we can find it, else cwd parent

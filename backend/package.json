@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "generate:voronoi": "python \"backend/Voronoi Algorithm/MappingAlg.py\"",
-    "generate:voronoi:5km": "python \"backend/Voronoi Algorithm/MappingAlg.py\" --pix 5000 --target_pop_per_seed 800000"
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "generate:voronoi": "python \"Voronoi Algorithm/MappingAlg.py\"",
+  "generate:voronoi:5km": "python \"Voronoi Algorithm/MappingAlg.py\" --pix 5000 --target_pop_per_seed 800000"
   },
   "keywords": [],
   "author": "",
