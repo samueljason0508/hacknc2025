@@ -43,10 +43,10 @@ function calculateAverage(values) {
 }
 
 
-getAverageAirQuality(37.419734, -122.0827784)
-  .then((data) => {
-    console.log('Air Quality Data:\n', JSON.stringify(data, null, 2));
-  })
-  .catch((err) => {
-    console.error('Error:', err.message);
-  });
+// getAverageAirQuality(37.419734, -122.0827784)
+//   .then((data) => {
+//     console.log('Air Quality Data:\n', JSON.stringify(data, null, 2));
+//   })
+//   .catch((err) => {
+//     console.error('Error:', err.message);
+//   });
