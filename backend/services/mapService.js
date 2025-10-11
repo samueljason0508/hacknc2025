@@ -5,7 +5,7 @@ export function handleMapClick(lat, lng) {
   console.log('Lat:', lat, 'Lng:', lng);
   let result = {};
 
-  result.airQuality = getAirQuality(lat, long);
+  result.airQuality = getAverageAirQuality(lat, long);
 
   return true;
 }
