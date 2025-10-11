@@ -24,6 +24,7 @@ import us
 
 from shapely.ops import unary_union
 from pyproj import CRS
+from pyproj import Transformer
 
 import rasterio
 from rasterio.features import rasterize
@@ -32,6 +33,7 @@ from rasterio.transform import from_origin
 import rioxarray as rxr
 from rasterstats import zonal_stats
 from geovoronoi import voronoi_regions_from_coords
+
 
 EQ_AREA_CRS = "EPSG:5070"   # NAD83 / Conus Albers
 WGS84 = "EPSG:4326"
@@ -162,8 +164,17 @@ def main():
     if args.make_voronoi:
         vrn = build_voronoi(bg, args.target_pop_per_seed, args.seed_floor, args.random_state)
         vrn = add_zonal_stats(vrn, raster_path=out_tif, pix=args.pix)
-        vrn.to_crs(WGS84).to_file(out_geo, driver="GeoJSON")
-        print(f"   wrote {out_geo}")
+        vrn_wgs = vrn.to_crs(WGS84)
+
+    transformer = Transformer.from_crs(EQ_AREA_CRS, WGS84, always_xy=True)
+
+    lon, lat = transformer.transform(vrn["seed_x"].values, vrn["seed_y"].values)
+    vrn_wgs["seed_lon"] = lon
+    vrn_wgs["seed_lat"] = lat
+    vrn_wgs = vrn_wgs.drop(columns=["seed_x", "seed_y"])  # optional, keep clean
+
+    vrn_wgs.to_file(out_geo, driver="GeoJSON")
+    print(f"   wrote {out_geo} with lat/lon seeds")
 
     print("Done.")
 
