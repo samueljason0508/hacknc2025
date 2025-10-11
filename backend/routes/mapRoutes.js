@@ -1,5 +1,5 @@
 import express from 'express';
-import { handleMapClick } from '../services/mapService.js';
+import { mapOnClickController } from '../controllers/mapController.js';
 
 const router = express.Router();
 

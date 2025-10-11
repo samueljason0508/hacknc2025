@@ -9,12 +9,12 @@ app.use(express.json());
 app.use('/api', mapRoutes);
 
 app.get('/', (req, res) => {
-  res.send('Backend is running');
-});
+  res.send('Hello World!')
+})
 
-const PORT = 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Server listening on http://localhost:${PORT}`);
-});
+const port = 3000;
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
 
 
