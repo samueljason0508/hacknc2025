@@ -3,6 +3,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { handleMapClick } from './api/services/mapService.js';
+import aiOnPromptHandler from './api/aiOnPrompt.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -37,6 +38,19 @@ app.post('/api/mapOnClick', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in mapOnClick:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message
+    });
+  }
+});
+
+// AI prompt endpoint
+app.post('/api/aiOnPrompt', async (req, res) => {
+  try {
+    await aiOnPromptHandler(req, res);
+  } catch (error) {
+    console.error('Error in aiOnPrompt:', error);
     res.status(500).json({
       status: 'error',
       message: error.message
