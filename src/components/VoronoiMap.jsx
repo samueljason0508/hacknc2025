@@ -1,8 +1,20 @@
-// src/components/VoronoiMap.jsx
-import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
-import { useEffect, useState } from 'react';
+// src/components/MapView.jsx
+import { MapContainer, TileLayer, GeoJSON, Marker, CircleMarker, useMap, useMapEvents } from 'react-leaflet';
+import { useEffect, useState, useCallback } from 'react';
+import Navbar from './Navbar';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// Create a red marker icon
+const redIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+}); 
+
 
 // --- color scale for population density "mean" ---
 function colorForMean(m = 0) {
@@ -15,6 +27,7 @@ function colorForMean(m = 0) {
          m >    1 ? '#FD8D3C' : '#FEB24C';
 }
 
+// Fit the map to the loaded GeoJSON data
 function FitToData({ data }) {
   const map = useMap();
   useEffect(() => {
@@ -25,6 +38,7 @@ function FitToData({ data }) {
   return null;
 }
 
+// Add a legend to the map
 function Legend() {
   const map = useMap();
   useEffect(() => {
@@ -58,8 +72,27 @@ function Legend() {
   return null;
 }
 
-export default function VoronoiMap() {
+// Reliable default marker icon (CDN)
+const defaultIcon = new L.Icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+function MapClickHandler({ onClick }) {
+  useMapEvents({
+    click: (e) => onClick(e.latlng),
+  });
+  return null;
+}
+
+export default function MapView() {
+  const [data, setData] = useState(null);
   const [geo, setGeo] = useState(null);
+  const [position, setPosition] = useState(null);
 
   // Load base GeoJSON (place file in /public/voronoi_conus.geojson)
   useEffect(() => {
@@ -88,34 +121,80 @@ export default function VoronoiMap() {
     const fmt = (x, d = 2) =>
       typeof x === 'number' && Number.isFinite(x) ? x.toFixed(d) : '—';
 
-    layer.bindPopup(
-      `<b>Population (mean) density</b><br/>
-       mean: ${fmt(p.mean)} / km²<br/>
-       median: ${fmt(p.median)} / km²<br/>
-       min: ${fmt(p.min)} / km² · max: ${fmt(p.max)} / km²<br/>
-       area: ${Math.round(p.area_km2)} km²<br/>
-       pop_est: ${p.pop_est?.toLocaleString?.() ?? '—'}`
-    );
+    // layer.bindPopup(
+    //   `<b>Population (mean) density</b><br/>
+    //    mean: ${fmt(p.mean)} / km²<br/>
+    //    median: ${fmt(p.median)} / km²<br/>
+    //    min: ${fmt(p.min)} / km² · max: ${fmt(p.max)} / km²<br/>
+    //    area: ${Math.round(p.area_km2)} km²<br/>
+    //    pop_est: ${p.pop_est?.toLocaleString?.() ?? '—'}`
+    // );
+
+    // ALSO catch clicks on polygons (some setups stop bubbling)
+    layer.on('click', (e) => handleClick(e.latlng));
   };
 
+  // Single click handler used by both map background and polygons
+  const handleClick = useCallback(async (latlng) => {
+    setPosition(latlng);            // show marker immediately
+    try {
+      const response = await fetch('/api/mapOnClick', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat: latlng.lat, lng: latlng.lng }),
+      });
+      if (response.ok) {
+        setData(await response.json());
+      } else {
+        setData({ status: 'error', message: 'API unavailable' });
+      }
+    } catch (err) {
+      console.error('Error calling map controller:', err);
+      setData({ status: 'error', message: 'API connection failed' });
+    }
+  }, []);
+
   return (
-    <MapContainer
-      center={[39.5, -98.35]}
-      zoom={4}
-      style={{ height: '100vh', width: '100%' }}
-      preferCanvas
-    >
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution="&copy; OpenStreetMap contributors"
-      />
-      {geo && (
-        <>
-          <GeoJSON data={geo} style={styleFn} onEachFeature={onEach} />
-          <FitToData data={geo} />
-          <Legend />
-        </>
-      )}
-    </MapContainer>
+    <div style={{ display: 'flex', height: '100vh' }}>
+      <Navbar data={data} />
+      <div style={{ flex: 1 }}>
+        <MapContainer
+          center={[39.5, -98.35]}
+          zoom={4}
+          style={{ height: '100%', width: '100%' }}
+          preferCanvas
+        >
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="&copy; OpenStreetMap contributors"
+          />
+
+          {/* GeoJSON overlay + legend */}
+          {geo && (
+            <>
+              <GeoJSON
+                data={geo}
+                style={styleFn}
+                onEachFeature={onEach}
+                bubblingMouseEvents={true} // be explicit
+              />
+              <FitToData data={geo} />
+              <Legend />
+            </>
+          )}
+
+          {/* Catch clicks on bare map */}
+          <MapClickHandler onClick={handleClick} />
+
+          {/* Visualize the clicked point (both Marker and a tiny CircleMarker as fallback) */}
+          {position && (
+            <>
+              <Marker position={position} icon={redIcon} />
+              <CircleMarker center={position} radius={5} />
+            </>
+          )}
+        </MapContainer>
+      </div>
+    </div>
   );
 }
