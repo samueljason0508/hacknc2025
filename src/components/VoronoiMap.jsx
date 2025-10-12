@@ -160,7 +160,10 @@ export default function MapView() {
       <div style={{ flex: 1 }}>
         <MapContainer
           center={[39.5, -98.35]}
-          zoom={4}
+          zoom={5}
+          minZoom={5}
+          maxBounds={[[24, -125], [50, -66]]}
+          maxBoundsViscosity={1.0}
           style={{ height: '100%', width: '100%' }}
           preferCanvas
         >
