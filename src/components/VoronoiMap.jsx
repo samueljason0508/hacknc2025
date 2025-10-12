@@ -1,33 +1,22 @@
-// src/components/MapView.jsx
 import { MapContainer, TileLayer, GeoJSON, Marker, CircleMarker, useMap, useMapEvents } from 'react-leaflet';
 import { useEffect, useState, useCallback } from 'react';
 import Navbar from './Navbar';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Create a red marker icon
+import { useUserWeights } from '../services/userWeights';
+import { computeFrustration, colorForSigned } from '../utils/frustrationIndex';
+
+// red marker
 const redIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
   iconSize: [25, 41],
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-}); 
+  shadowSize: [41, 41],
+});
 
-
-// --- color scale for population density "mean" ---
-function colorForMean(m = 0) {
-  return m > 3000 ? '#200009' :
-         m > 2000 ? '#430014' :
-         m > 1000 ? '#800026' :
-         m >  200 ? '#BD0026' :
-         m >   50 ? '#E31A1C' :
-         m >   10 ? '#FC4E2A' :
-         m >    1 ? '#FD8D3C' : '#FEB24C';
-}
-
-// Fit the map to the loaded GeoJSON data
 function FitToData({ data }) {
   const map = useMap();
   useEffect(() => {
@@ -38,32 +27,34 @@ function FitToData({ data }) {
   return null;
 }
 
-// Add a legend to the map
-function Legend() {
+// Legend for signed score –10..+10
+function LegendSigned() {
   const map = useMap();
   useEffect(() => {
-    const div = L.DomUtil.create('div', 'info legend');
-    div.style.background = 'white';
-    div.style.padding = '8px';
-    div.style.borderRadius = '6px';
-    div.style.lineHeight = '1.2';
-
     const rows = [
-      { c: '#200009', label: '> 3000' },
-      { c: '#430014', label: '2001–3000' },
-      { c: '#800026', label: '1001–2000' },
-      { c: '#BD0026', label: '201–1000' },
-      { c: '#E31A1C', label: '51–200' },
-      { c: '#FC4E2A', label: '11–50' },
-      { c: '#FD8D3C', label: '1–10' },
-      { c: '#FEB24C', label: '≤ 1' }
+      { c: '#2DC937', label: '≤ –8' },
+      { c: '#7DCB3A', label: '–8 to –4' },
+      { c: '#C9D73A', label: '–4 to 0' },
+      { c: '#E7B416', label: '0 to +4' },
+      { c: '#DB7B2B', label: '+4 to +8' },
+      { c: '#CC3232', label: '≥ +8' },
     ];
-
-    div.innerHTML = `<div><b>Population density (mean, /km²)</b></div>` +
-      rows.map(r =>
-        `<div><span style="background:${r.c};display:inline-block;width:12px;height:12px;margin-right:6px;"></span>${r.label}</div>`
-      ).join('');
-
+    const div = L.DomUtil.create('div', 'info legend');
+    Object.assign(div.style, {
+      background: 'white',
+      padding: '8px',
+      borderRadius: '6px',
+      lineHeight: '1.2',
+    });
+    div.innerHTML =
+      `<div><b>Pleasant ↔ Frustrating</b></div>` +
+      rows
+        .map(
+          (r) =>
+            `<div><span style="background:${r.c};display:inline-block;width:12px;height:12px;margin-right:6px;"></span>${r.label}</div>`
+        )
+        .join('') +
+      `<div style="margin-top:4px;font-size:11px;">–10 pleasing · +10 frustrating</div>`;
     const ctrl = L.control({ position: 'bottomright' });
     ctrl.onAdd = () => div;
     ctrl.addTo(map);
@@ -72,7 +63,6 @@ function Legend() {
   return null;
 }
 
-// Reliable default marker icon (CDN)
 const defaultIcon = new L.Icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -94,49 +84,70 @@ export default function MapView() {
   const [geo, setGeo] = useState(null);
   const [position, setPosition] = useState(null);
 
-  // Load base GeoJSON (place file in /public/voronoi_conus.geojson)
+  const { weights } = useUserWeights();
+
+  // Load base GeoJSON (served from /public)
   useEffect(() => {
     fetch('/voronoi_conus.geojson')
-      .then(r => {
+      .then((r) => {
         if (!r.ok) throw new Error(`GeoJSON ${r.status}`);
         return r.json();
       })
       .then(setGeo)
-      .catch(err => console.error('GeoJSON load failed:', err));
+      .catch((err) => console.error('GeoJSON load failed:', err));
   }, []);
 
+  // Style using the modular score (today only density -> later add AQI/noise/rent/transit)
   const styleFn = (f) => {
-    const m = f?.properties?.mean;
+    const p = f?.properties ?? {};
+    const raw = {
+      densityMean: p.mean,  // what we have in the GeoJSON
+      // aqi: ??? (later)
+      // noiseDb: ??? (later)
+      // rentUsd: ??? (later)
+      // transitGood01: ??? (later)
+    };
+    const { scoreSigned } = computeFrustration(raw, weights);
     return {
       color: '#555',
       weight: 0.6,
       opacity: 1,
       fillOpacity: 0.65,
-      fillColor: colorForMean(Number(m) || 0)
+      fillColor: colorForSigned(scoreSigned),
     };
   };
 
   const onEach = (f, layer) => {
     const p = f.properties ?? {};
+    const raw = { densityMean: p.mean };
+    const { scoreSigned, parts, weights: w } = computeFrustration(raw, weights);
+
     const fmt = (x, d = 2) =>
       typeof x === 'number' && Number.isFinite(x) ? x.toFixed(d) : '—';
 
-    // layer.bindPopup(
-    //   `<b>Population (mean) density</b><br/>
-    //    mean: ${fmt(p.mean)} / km²<br/>
-    //    median: ${fmt(p.median)} / km²<br/>
-    //    min: ${fmt(p.min)} / km² · max: ${fmt(p.max)} / km²<br/>
-    //    area: ${Math.round(p.area_km2)} km²<br/>
-    //    pop_est: ${p.pop_est?.toLocaleString?.() ?? '—'}`
-    // );
+    const html = `
+      <b>Frustration Index (weighted)</b><br/>
+      Score: ${fmt(scoreSigned, 2)} (–10 pleasant → +10 frustrating)<br/>
+      <hr/>
+      <b>Population density (mean)</b>: ${fmt(p.mean)} / km²<br/>
+      median: ${fmt(p.median)} / km²<br/>
+      min: ${fmt(p.min)} · max: ${fmt(p.max)} / km²<br/>
+      area: ${Math.round(p.area_km2)} km² · pop_est: ${p.pop_est?.toLocaleString?.() ?? '—'}
+      <hr/>
+      <b>Factor weights</b><br/>
+      density: ${(w.density*100).toFixed(0)}% · aqi: ${(w.aqi*100).toFixed(0)}% · noise: ${(w.noise*100).toFixed(0)}%<br/>
+      rent: ${(w.rent*100).toFixed(0)}% · transit: ${(w.transit*100).toFixed(0)}%
+      <br/>
+      <small>density01=${fmt(parts.density01)}</small>
+    `;
+    layer.bindPopup(html);
 
-    // ALSO catch clicks on polygons (some setups stop bubbling)
+    // Allow polygon clicks to also set marker/side panel, if you want:
     layer.on('click', (e) => handleClick(e.latlng));
   };
-
-  // Single click handler used by both map background and polygons
+  
   const handleClick = useCallback(async (latlng) => {
-    setPosition(latlng);            // show marker immediately
+    setPosition(latlng);
     try {
       const response = await fetch('/api/mapOnClick', {
         method: 'POST',
@@ -172,24 +183,21 @@ export default function MapView() {
             attribution="&copy; OpenStreetMap contributors"
           />
 
-          {/* GeoJSON overlay + legend */}
           {geo && (
             <>
               <GeoJSON
                 data={geo}
                 style={styleFn}
                 onEachFeature={onEach}
-                bubblingMouseEvents={true} // be explicit
+                bubblingMouseEvents={true}
               />
               <FitToData data={geo} />
-              <Legend />
+              <LegendSigned />
             </>
           )}
 
-          {/* Catch clicks on bare map */}
           <MapClickHandler onClick={handleClick} />
 
-          {/* Visualize the clicked point (both Marker and a tiny CircleMarker as fallback) */}
           {position && (
             <>
               <Marker position={position} icon={redIcon} />
