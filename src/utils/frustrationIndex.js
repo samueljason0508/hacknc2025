@@ -2,11 +2,11 @@
 
 // Hard default weights (sum ≈ 1). You can override per user.
 export const DEFAULT_WEIGHTS = {
-  density: 0.35,  // population density (mean)
-  aqi:     0.25,  // air quality (pm2.5/aqi proxy later)
-  noise:   0.15,  // environmental noise
-  rent:    0.15,  // housing cost
-  transit: 0.10,  // transit pain / lack of options
+  density: .8,  // population density (mean)
+  aqi:     .2,  // air quality (pm2.5/aqi proxy later)
+  noise:   0,  // environmental noise
+  rent:    0,  // housing cost
+  transit: 0,  // transit pain / lack of options
 };
 
 // clamp to 0..1
