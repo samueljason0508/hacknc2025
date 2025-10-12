@@ -102,10 +102,10 @@ export function computeFrustration(raw = {}, weights = DEFAULT_WEIGHTS) {
 
 // Color ramp for signed score (–10 → +10)
 export function colorForSigned(s = 0) {
-  if (s <= -3) return '#2DC937'; // deep green
-  if (s <= -2) return '#7DCB3A';
+  if (s <= -7) return '#2DC937'; // deep green
+  if (s <= -3) return '#7DCB3A';
   if (s <   0) return '#C9D73A';
-  if (s <   2) return '#E7B416';
-  if (s <   3) return '#DB7B2B';
+  if (s <   3) return '#E7B416';
+  if (s <   7) return '#DB7B2B';
   return '#CC3232';
 }
