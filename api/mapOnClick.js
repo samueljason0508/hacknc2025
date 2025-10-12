@@ -11,9 +11,6 @@ export default async function handler(request, response) {
 
     const { lat, lng } = request.body;
 
-    console.log('Raw request body:', request.body);
-    console.log('Lat:', lat, 'Lng:', lng);
-
     const result = await handleMapClick(lat, lng);
 
     return response.status(200).json({
