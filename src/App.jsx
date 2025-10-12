@@ -1,11 +1,19 @@
 import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Home from './Home'
+import Login from './Login'
+import Survey from './Survey'
 
 function App() {
+  
   return (
-    <div className="app">
-      <h1 className="main-title">Sadness</h1>
-      <button className="main-button">Feel the Pain</button>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/Login" element={<Login />} />
+        <Route path="/survey" element={<Survey />} />
+      </Routes>
+    </Router>
   )
 }
 
