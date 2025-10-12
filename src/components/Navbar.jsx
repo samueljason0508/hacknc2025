@@ -37,18 +37,27 @@ export default function Navbar({ data, collapsed, onToggle }) {
   const [openAQ, setOpenAQ] = useState(false);
   const [openLoc, setOpenLoc] = useState(false);
   const [openGrocery, setOpenGrocery] = useState(false);
+  const [openSummary, setOpenSummary] = useState(false);
 
   const { weights } = useUserWeights();
   const payload = data?.data ?? data ?? null;
 
   const address = useMemo(() => {
     const loc = payload?.locationDetails || {};
-    return (
-      loc.formatted_address ||
-      loc.display_name ||
-      [loc.street, loc.city, loc.state, loc.country].filter(Boolean).join(', ') ||
-      'Click the map'
-    );
+    // Handle formatted_address or display_name
+    if (loc.formatted_address) return loc.formatted_address;
+    if (loc.display_name) return loc.display_name;
+    
+    // Fallback: construct from address object (OpenStreetMap format)
+    const addr = loc.address || {};
+    const parts = [
+      addr.road || loc.street,
+      addr.city || addr.county,
+      addr.state,
+      addr.country || loc.country
+    ].filter(Boolean);
+    
+    return parts.length > 0 ? parts.join(', ') : 'Click the map';
   }, [payload]);
 
   const scoreObj = useMemo(() => {
@@ -144,20 +153,47 @@ export default function Navbar({ data, collapsed, onToggle }) {
           />
         </Section>
 
-        <Section title="Summary">
-          <div className="nb-summary">
-            <div className="nb-address" title={address}>
-              {address}
+        {/* Summary (collapsible) */}
+        <Row title="Summary" open={openSummary} onClick={() => setOpenSummary(v => !v)} />
+        {openSummary && (
+          <div className="nb-disclosure">
+            <div className="nb-kv">
+              <span>Address</span>
+              <span className="nb-mono" title={address}>
+                {address}
+              </span>
             </div>
-            <div
-              className="nb-score-pill"
-              style={{ backgroundColor: badge.bg }}
-              title={`Frustration index: ${fmt(badge.val, 2)}`}
-            >
-              {badge.txt}
+            <div className="nb-kv">
+              <span>Frustration Index</span>
+              <span
+                className="nb-mono"
+                style={{ 
+                  backgroundColor: badge.bg, 
+                  padding: '2px 8px', 
+                  borderRadius: '4px',
+                  color: 'white'
+                }}
+                title={`Frustration index: ${fmt(badge.val, 2)}`}
+              >
+                {badge.txt}
+              </span>
+            </div>
+            <div className="nb-kv">
+              <span>Place ID</span>
+              <span className="nb-mono">
+                {payload?.locationDetails?.place_id || '—'}
+              </span>
+            </div>
+            <div className="nb-kv">
+              <span>Coordinates</span>
+              <span className="nb-mono">
+                {payload?.locationDetails?.lat && payload?.locationDetails?.lon
+                  ? `${fmt(payload.locationDetails.lat, 6)}, ${fmt(payload.locationDetails.lon, 6)}`
+                  : '—'}
+              </span>
             </div>
           </div>
-        </Section>
+        )}
 
         {/* Air Quality (collapsible) */}
         <Row title="Air Quality" open={openAQ} onClick={() => setOpenAQ(v => !v)} />
