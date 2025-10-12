@@ -1,3 +1,4 @@
+// src/components/VoronoiMap.jsx (or MapView.jsx)
 import { MapContainer, TileLayer, GeoJSON, Marker, CircleMarker, useMap, useMapEvents } from 'react-leaflet';
 import { useEffect, useState, useCallback } from 'react';
 import Navbar from './Navbar';
@@ -7,7 +8,7 @@ import 'leaflet/dist/leaflet.css';
 import { useUserWeights } from '../services/userWeights';
 import { computeFrustration, colorForSigned } from '../utils/frustrationIndex';
 
-// red marker 
+// --- red marker icon ---
 const redIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
@@ -17,6 +18,7 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
+// --- fit map to geojson bounds ---
 function FitToData({ data }) {
   const map = useMap();
   useEffect(() => {
@@ -27,18 +29,19 @@ function FitToData({ data }) {
   return null;
 }
 
-// Legend for signed score –10..+10
+// --- legend (–10 .. +10) ---
 function LegendSigned() {
   const map = useMap();
   useEffect(() => {
     const rows = [
-      { c: '#2DC937', label: '≤ –3' },
-      { c: '#7DCB3A', label: '–2 to –3' },
-      { c: '#C9D73A', label: '-1 to 0' },
-      { c: '#E7B416', label: '0 to +1' },
-      { c: '#DB7B2B', label: '+2 to +3' },
-      { c: '#CC3232', label: '≥ +3' },
+      { c: '#2DC937', label: '≤ -7' },
+      { c: '#7DCB3A', label: '-7 to -3' },
+      { c: '#C9D73A', label: '-3 to 0' },
+      { c: '#E7B416', label: '0 to +3' },
+      { c: '#DB7B2B', label: '+3 to +7' },
+      { c: '#CC3232', label: '≥ +7' },
     ];
+
     const div = L.DomUtil.create('div', 'info legend');
     Object.assign(div.style, {
       background: 'white',
@@ -46,15 +49,16 @@ function LegendSigned() {
       borderRadius: '6px',
       lineHeight: '1.2',
     });
+
     div.innerHTML =
-      `<div><b>Pleasant ↔ Frustrating</b></div>` +
+      '<div><b>Pleasant ↔ Frustrating</b></div>' +
       rows
         .map(
           (r) =>
             `<div><span style="background:${r.c};display:inline-block;width:12px;height:12px;margin-right:6px;"></span>${r.label}</div>`
         )
-        .join('') +
-      `<div style="margin-top:4px;font-size:11px;">–10 pleasing · +10 frustrating</div>`;
+        .join('');
+
     const ctrl = L.control({ position: 'bottomright' });
     ctrl.onAdd = () => div;
     ctrl.addTo(map);
@@ -63,15 +67,7 @@ function LegendSigned() {
   return null;
 }
 
-const defaultIcon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
+// --- click handler hook ---
 function MapClickHandler({ onClick }) {
   useMapEvents({
     click: (e) => onClick(e.latlng),
@@ -79,10 +75,21 @@ function MapClickHandler({ onClick }) {
   return null;
 }
 
+// --- invalidate map size when sidebar collapses/expands ---
+function MapResizer({ trigger }) {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => map.invalidateSize({ animate: false }), 220); // keep in sync with CSS transition
+    return () => clearTimeout(t);
+  }, [trigger, map]);
+  return null;
+}
+
 export default function MapView() {
   const [data, setData] = useState(null);
   const [geo, setGeo] = useState(null);
   const [position, setPosition] = useState(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   const { weights } = useUserWeights();
 
@@ -97,15 +104,12 @@ export default function MapView() {
       .catch((err) => console.error('GeoJSON load failed:', err));
   }, []);
 
-  // Style using the modular score (today only density -> later add AQI/noise/rent/transit)
+  // Style polygons using frustration score (currently using density mean from the file)
   const styleFn = (f) => {
     const p = f?.properties ?? {};
     const raw = {
-      densityMean: p.mean,  // what we have in the GeoJSON
-      // aqi: ??? (later)
-      // noiseDb: ??? (later)
-      // rentUsd: ??? (later)
-      // transitGood01: ??? (later)
+      densityMean: p.mean, // available in your GeoJSON
+      // aqi, noiseDb, rentUsd, transitGood01 can be added later
     };
     const { scoreSigned } = computeFrustration(raw, weights);
     return {
@@ -118,17 +122,10 @@ export default function MapView() {
   };
 
   const onEach = (f, layer) => {
-    const p = f.properties ?? {};
-    const raw = { densityMean: p.mean };
-    const { scoreSigned, parts, weights: w } = computeFrustration(raw, weights);
-
-    const fmt = (x, d = 2) =>
-      typeof x === 'number' && Number.isFinite(x) ? x.toFixed(d) : '—';
-
-    // Allow polygon clicks to also set marker/side panel, if you want:
+    // allow polygon click to drive the sidebar
     layer.on('click', (e) => handleClick(e.latlng));
   };
-  
+
   const handleClick = useCallback(async (latlng) => {
     setPosition(latlng);
     try {
@@ -150,8 +147,10 @@ export default function MapView() {
 
   return (
     <div style={{ display: 'flex', height: '100vh' }}>
-      <Navbar data={data} />
-      <div style={{ flex: 1 }}>
+      {/* Pass collapsed + onToggle so the sidebar can control its state */}
+      <Navbar data={data} collapsed={collapsed} onToggle={setCollapsed} />
+
+      <div style={{ flex: 1, minWidth: 0 }}>
         <MapContainer
           center={[39.5, -98.35]}
           zoom={5}
@@ -161,6 +160,9 @@ export default function MapView() {
           style={{ height: '100%', width: '100%' }}
           preferCanvas
         >
+          {/* Recompute map size when sidebar opens/closes */}
+          <MapResizer trigger={collapsed} />
+
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; OpenStreetMap contributors"
@@ -168,12 +170,7 @@ export default function MapView() {
 
           {geo && (
             <>
-              <GeoJSON
-                data={geo}
-                style={styleFn}
-                onEachFeature={onEach}
-                bubblingMouseEvents={true}
-              />
+              <GeoJSON data={geo} style={styleFn} onEachFeature={onEach} bubblingMouseEvents />
               <FitToData data={geo} />
               <LegendSigned />
             </>

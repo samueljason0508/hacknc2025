@@ -101,11 +101,20 @@ export function computeFrustration(raw = {}, weights = DEFAULT_WEIGHTS) {
 }
 
 // Color ramp for signed score (–10 → +10)
-export function colorForSigned(s = 0) {
-  if (s <= -7) return '#2DC937'; // deep green
-  if (s <= -3) return '#7DCB3A';
-  if (s <   0) return '#C9D73A';
-  if (s <   3) return '#E7B416';
-  if (s <   7) return '#DB7B2B';
-  return '#CC3232';
+export const SCORE_BREAKS = [-10, -7, -3, 0, 3, 7, 10]; // 6 bins
+export const SCORE_COLORS = ['#2DC937', '#7DCB3A', '#C9D73A', '#E7B416', '#DB7B2B', '#CC3232'];
+
+/** Clamp to range */
+const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+
+/** Map signed score to color using the exact bins shown in the legend */
+export function colorForSigned(s) {
+  const val = clamp(Number(s ?? 0), -10, 10);
+  // bins: [-10, -7), [-7, -3), [-3, 0), [0, 3), [3, 7), [7, 10]
+  if (val < SCORE_BREAKS[1]) return SCORE_COLORS[0];
+  if (val < SCORE_BREAKS[2]) return SCORE_COLORS[1];
+  if (val < SCORE_BREAKS[3]) return SCORE_COLORS[2];
+  if (val < SCORE_BREAKS[4]) return SCORE_COLORS[3];
+  if (val < SCORE_BREAKS[5]) return SCORE_COLORS[4];
+  return SCORE_COLORS[5];
 }

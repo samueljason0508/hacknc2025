@@ -19,8 +19,6 @@ You can deploy your new Vite project with a single command from your terminal us
 ```shell
 $ vercel
 ```
-
-
 This project was built using React, Vite, Leaflet, and Firebase, with additional technologies including JavaScript, HTML5, CSS, and JSON.
 Data and services were sourced from the Google Maps API (for grocery distance calculations), Open-Meteo API (for environmental data), and publicly available datasets for population and geographic information.
 AI-generated summaries were created using Gemini (Google’s LLM) and supported by ChatGPT for idea refinement, code review, and documentation editing.
