@@ -1,11 +1,90 @@
-.min {
-  background-color: aqua;
-  height: 100vh;        /* full viewport height */
-  display: flex;        /* optional: center content */
-  justify-content: center;
+.loginPage {
+    background-color: #fffeb4;
   align-items: center;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: 0;
 }
 
+.loginTitle {
+    font-family: "BoldPixels";
+    font-size: 25vh;
+    color: #f65d2d;
+  -webkit-text-stroke: 0.8vh #ffe18b;
+  margin-top: 10vh;
+  margin-bottom: 7vh;
+}
+
+.email {
+    font-family: "BoldPixels";
+    font-size: 6vh;
+    width: 80vh;
+    margin-bottom: 0.75vh;
+    border: none;
+    background-color: #71cba0;
+    box-shadow: 3px 3px 0 #f65d2d;
+    transition: all 0.175s ease;
+}
+
+.email:focus {
+    outline: none;
+}
+
+.email:not(:placeholder-shown) {
+    border: 0.5vh solid #666448;
+}
+
+.password {
+    font-family: "BoldPixels";
+    font-size: 6vh;
+    width: 80vh;
+    background-color: #71cba0;
+    margin-bottom: 2vh;
+    border: none;
+    box-shadow: 3px 3px 0 #f65d2d;
+    transition: all 0.175s ease;
+}
+
+.password:focus {
+    outline: none;
+}
+
+
+.password:not(:placeholder-shown) {
+    border: 0.5vh solid #666448;
+}
+
+
+
+.loginButton {
+  font-size: 5vh;
+  background-color: #fffeb4;
+  font-family: "BoldPixels";
+  color: #666448;
+  border: 0.5vh solid #666448;
+  box-shadow: 7px 7px 0 #f65d2d;
+  transition: all 0.175s ease;
+}
+
+.loginButton:hover {
+      box-shadow: 10px 10px 0 #ff9c6b;
+  transform: translate(-2px, -2px);
+  -webkit-text-stroke: 0.15vh #ffe18b;
+
+}
+
+.errorMess {
+    font-family: "BoldPixels";
+    margin-bottom: 7vh;
+}
+
+.emoji {
+    font-family: "BoldPixels";
+}
 
 html {
   margin: 0;
