@@ -10,7 +10,6 @@
     "dev:full": "concurrently \"npm run dev:api\" \"npm run dev\""
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
     "@supabase/supabase-js": "^2.75.0",
     "firebase": "^12.4.0",
     "leaflet": "^1.9.4",
