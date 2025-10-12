@@ -13,9 +13,10 @@ export async function handleMapClick(lat, lng) {
     result.locationDetails = await getLocationDetails(lat, lng);
 
     result.populationDensity = await getPopulationDensity(lat, lng);
-    console.log('Population Density Data:', JSON.stringify(result.populationDensity, null, 2));
-
-    console.log('Complete Result:', JSON.stringify(result, null, 2));
+    
+    if (result.populationDensity?.message === "Location not found in dataset") {
+        return "No data found";
+    }
 
     return result;
 }
