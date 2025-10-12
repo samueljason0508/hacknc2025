@@ -1,18 +1,10 @@
-import React from "react";
-import "./Main.css";
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
 
-
-function Main() {
-  return (
-    <div className="app">
-      <h1 className="main-title">Sadness</h1>
-      <button className="main-button">Feel the Pain</button>
-    </div>
-  );
-}
-
-export default Main;
-
-
-
-
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
