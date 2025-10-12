@@ -3,15 +3,15 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
-// Paste your config here
+// Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyA73jt2hkPrig4Ncn_GvRxqUzvs1GVjvr4",
-  authDomain: "hacknc25-53dc3.firebaseapp.com",
-  projectId: "hacknc25-53dc3",
-storageBucket: "hacknc25-53dc3.appspot.com",
-  messagingSenderId: "510242530025",
-  appId: "1:510242530025:web:45ee4112465045fdea0678",
-  measurementId: "G-K66FB2NB2C"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 const app = initializeApp(firebaseConfig);
 
