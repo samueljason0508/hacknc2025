@@ -32,12 +32,12 @@ function LegendSigned() {
   const map = useMap();
   useEffect(() => {
     const rows = [
-      { c: '#2DC937', label: '≤ –8' },
-      { c: '#7DCB3A', label: '–8 to –4' },
-      { c: '#C9D73A', label: '–4 to 0' },
-      { c: '#E7B416', label: '0 to +4' },
-      { c: '#DB7B2B', label: '+4 to +8' },
-      { c: '#CC3232', label: '≥ +8' },
+      { c: '#2DC937', label: '≤ –3' },
+      { c: '#7DCB3A', label: '–2 to –3' },
+      { c: '#C9D73A', label: '-1 to 0' },
+      { c: '#E7B416', label: '0 to +1' },
+      { c: '#DB7B2B', label: '+2 to +3' },
+      { c: '#CC3232', label: '≥ +3' },
     ];
     const div = L.DomUtil.create('div', 'info legend');
     Object.assign(div.style, {
