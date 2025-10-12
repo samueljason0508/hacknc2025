@@ -1,4 +1,4 @@
-import { handleMapClick } from './services/mapService.js';
+import { generateContent } from './services/geminiResponse.js';
 
 export default async function handler(request, response) {
   try {
@@ -9,9 +9,10 @@ export default async function handler(request, response) {
       });
     }
 
-    const { lat, lng } = request.body;
+    const { data } = request.body;
+    const prompt = `Analyze this location data and provide insights about the area's livability, air quality, and population density. Be concise and informative:\n\n${JSON.stringify(data, null, 2)}`;
 
-    const result = await handleMapClick(lat, lng);
+    const result = await generateContent(prompt);
 
     return response.status(200).json({
       status: 'ok',
@@ -19,7 +20,7 @@ export default async function handler(request, response) {
     });
 
   } catch (error) {
-    console.error('Error in mapOnClickController:', error);
+    console.error('Error in Loading Gemini:', error);
     return response.status(500).json({
       status: 'error',
       message: error.message
