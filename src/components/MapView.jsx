@@ -2,7 +2,7 @@
 import { MapContainer, TileLayer, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useState } from 'react';
-import Navbar from './Navbar'; // ← Import the new Navbar component
+import Navbar from './Navbar'; 
 
 export default function MapView() {
   return (
@@ -27,17 +27,40 @@ export default function MapView() {
 
 function ClickPopup() {
   const [position, setPosition] = useState(null);
+  const [data, setData] = useState(null);
 
   useMapEvents({
-    click(e) {
+    click: async (e) => {
       setPosition(e.latlng);
+      
+      // Call the backend API
+      try {
+        const response = await fetch('/api/mapOnClick', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            lat: e.latlng.lat,
+            lng: e.latlng.lng
+          })
+        });
+        
+        const json = await response.json();
+        setData(json);
+      } catch (error) {
+        console.error('Error calling map controller:', error);
+      }
     },
   });
 
   return (
     position && (
       <Popup position={position}>
-        You clicked at {position.lat.toFixed(4)}, {position.lng.toFixed(4)}
+        <div>
+          <p>You clicked at {position.lat.toFixed(4)}, {position.lng.toFixed(4)}</p>
+          {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
+        </div>
       </Popup>
     )
   );
