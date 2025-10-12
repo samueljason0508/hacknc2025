@@ -46,10 +46,15 @@ function ClickPopup() {
           })
         });
         
-        const json = await response.json();
-        setData(json);
+        if (response.ok) {
+          const json = await response.json();
+          setData(json);
+        } else {
+          setData({ status: 'error', message: 'API unavailable' });
+        }
       } catch (error) {
         console.error('Error calling map controller:', error);
+        setData({ status: 'error', message: 'API connection failed' });
       }
     },
   });

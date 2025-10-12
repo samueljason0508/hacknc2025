@@ -28,8 +28,8 @@ export default function Survey() {
       // Save to Firestore using UID as document ID
       await setDoc(doc(db, "frustrationInfo", auth.currentUser.uid), data);
       setMessage("Survey submitted successfully!");
-      // Optional: redirect after submit
-      // navigate("/thankyou");
+      // Redirect to map after submit
+      setTimeout(() => navigate("/map"), 1500);
     } catch (err) {
       console.error("Error saving survey:", err);
       setMessage("Failed to save survey. Try again.");
