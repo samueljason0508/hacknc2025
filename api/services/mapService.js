@@ -14,9 +14,9 @@ export async function handleMapClick(lat, lng) {
     return "No data found";
   }
 
-//   const prompt = `Analyze this location data and provide insights about the area's livability, air quality, and population density. Be concise and informative: ${JSON.stringify(result, null, 2)}`;
+  const prompt = `Analyze this location data and provide insights about the area's livability, air quality, and population density. Be concise and informative: ${JSON.stringify(result, null, 2)}`;
 
-//   result.geminiResponse = await generateContent(prompt);
+  result.geminiResponse = await generateContent(prompt);
 
   return result;
 }
