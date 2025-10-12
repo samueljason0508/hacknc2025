@@ -125,22 +125,22 @@ export default function MapView() {
     const fmt = (x, d = 2) =>
       typeof x === 'number' && Number.isFinite(x) ? x.toFixed(d) : '—';
 
-    const html = `
-      <b>Frustration Index (weighted)</b><br/>
-      Score: ${fmt(scoreSigned, 2)} (–10 pleasant → +10 frustrating)<br/>
-      <hr/>
-      <b>Population density (mean)</b>: ${fmt(p.mean)} / km²<br/>
-      median: ${fmt(p.median)} / km²<br/>
-      min: ${fmt(p.min)} · max: ${fmt(p.max)} / km²<br/>
-      area: ${Math.round(p.area_km2)} km² · pop_est: ${p.pop_est?.toLocaleString?.() ?? '—'}
-      <hr/>
-      <b>Factor weights</b><br/>
-      density: ${(w.density*100).toFixed(0)}% · aqi: ${(w.aqi*100).toFixed(0)}% · noise: ${(w.noise*100).toFixed(0)}%<br/>
-      rent: ${(w.rent*100).toFixed(0)}% · transit: ${(w.transit*100).toFixed(0)}%
-      <br/>
-      <small>density01=${fmt(parts.density01)}</small>
-    `;
-    layer.bindPopup(html);
+    // const html = `
+    //   <b>Frustration Index (weighted)</b><br/>
+    //   Score: ${fmt(scoreSigned, 2)} (–10 pleasant → +10 frustrating)<br/>
+    //   <hr/>
+    //   <b>Population density (mean)</b>: ${fmt(p.mean)} / km²<br/>
+    //   median: ${fmt(p.median)} / km²<br/>
+    //   min: ${fmt(p.min)} · max: ${fmt(p.max)} / km²<br/>
+    //   area: ${Math.round(p.area_km2)} km² · pop_est: ${p.pop_est?.toLocaleString?.() ?? '—'}
+    //   <hr/>
+    //   <b>Factor weights</b><br/>
+    //   density: ${(w.density*100).toFixed(0)}% · aqi: ${(w.aqi*100).toFixed(0)}% · noise: ${(w.noise*100).toFixed(0)}%<br/>
+    //   rent: ${(w.rent*100).toFixed(0)}% · transit: ${(w.transit*100).toFixed(0)}%
+    //   <br/>
+    //   <small>density01=${fmt(parts.density01)}</small>
+    // `;
+    // layer.bindPopup(html);
 
     // Allow polygon clicks to also set marker/side panel, if you want:
     layer.on('click', (e) => handleClick(e.latlng));
