@@ -6,8 +6,8 @@ import "./Survey.css";
 
 export default function Survey() {
   const questions = [
-    { id: "populationDensity", text: "Population Density" },
-    { id: "airQuality", text: "Air Quality" },
+    { id: "populationDensity", text: "thoughts on socializing?" },
+    { id: "airQuality", text: "thoughts on the environment?" },
   ];
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -57,18 +57,21 @@ export default function Survey() {
         return (
           <div key={q.id} className={className}>
             <h2>{q.text}</h2>
-            <div className="slider-wrapper">
-              <input
-                type="range"
-                min="-10"
-                max="10"
-                step="0.1"
-                value={values[q.id]}
-                onChange={handleChange}
-              />
-              <div className="slider-value">{values[q.id]}</div>
-            </div>
-            <button onClick={handleNext}>Submit</button>
+<div className="slider-wrapper">
+  <span className="slider-label-left">love</span>
+  <input className="slider"
+    type="range"
+    min="-10"
+    max="10"
+    step="0.1"
+    value={values[q.id] || 0}
+    onChange={(e) =>
+      setValues((prev) => ({ ...prev, [q.id]: parseFloat(e.target.value) }))
+    }
+  />
+  <span className="slider-label-right">hate</span>
+</div>
+            <button onClick={handleNext} className="submitButton">Submit</button>
           </div>
         );
       })}
