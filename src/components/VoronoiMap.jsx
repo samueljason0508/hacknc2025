@@ -91,7 +91,7 @@ export default function MapView() {
   const [position, setPosition] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
 
-  const { weights } = useUserWeights();
+  const { weights, loading } = useUserWeights();
 
   // Load base GeoJSON (served from /public)
   useEffect(() => {
@@ -168,7 +168,7 @@ export default function MapView() {
             attribution="&copy; OpenStreetMap contributors"
           />
 
-          {geo && (
+          {geo && !loading && (
             <>
               <GeoJSON data={geo} style={styleFn} onEachFeature={onEach} bubblingMouseEvents />
               <FitToData data={geo} />
