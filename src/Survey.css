@@ -1,0 +1,81 @@
+/* Container styling */
+.survey-container {
+        background-color: #fffeb4;
+
+  position: relative;
+  margin: 0;
+  overflow: hidden; /* hides the question that slides out */
+  height: 100vh; /* adjust height as needed */
+  width: 100vw;
+}
+
+/* Each question box */
+.question {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  opacity: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+/* Currently visible question */
+.active {
+  transform: translateX(0);
+  opacity: 1;
+  z-index: 2;
+}
+
+/* Already answered / slide left */
+.slide-left {
+  transform: translateX(-100%);
+  opacity: 0;
+  z-index: 1;
+}
+
+/* Not yet shown / off-screen right */
+.next {
+  transform: translateX(100%);
+  opacity: 0;
+  z-index: 0;
+}
+
+.slider-wrapper {
+  width: 60%; /* slider not full width */
+  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.slider-value {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+

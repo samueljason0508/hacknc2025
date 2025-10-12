@@ -1,0 +1,107 @@
+/* clean, modern font */
+.nb-font {
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.nb-wrap {
+  width: 360px;
+  padding: 16px;
+  background: #0e1a26;           /* deep navy */
+  color: #e7edf3;                 /* soft light */
+  border-right: 1px solid rgba(255,255,255,0.06);
+  overflow-y: auto;
+}
+
+.nb-title {
+  font-size: 32px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  margin: 8px 0 16px;
+}
+
+.nb-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.nb-section { margin-bottom: 14px; }
+.nb-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  opacity: 0.95;
+  margin-bottom: 10px;
+}
+.nb-section-body { margin-top: 8px; }
+
+.nb-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.nb-address {
+  flex: 1;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nb-score-pill {
+  min-width: 42px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #0d0f12;                 /* readable on light/green */
+}
+
+.nb-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.08);
+  color: inherit;
+  padding: 12px 14px;
+  border-radius: 12px;
+  margin: 6px 0;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.nb-row:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.14); }
+.nb-chevron { opacity: 0.6; font-size: 18px; }
+
+.nb-disclosure {
+  margin: 8px 0 12px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.nb-kv {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 6px 0;
+}
+.nb-mono { font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; opacity: 0.9; }
+
+/* AI block */
+.nb-ai {
+  font-size: 14px;
+  line-height: 1.45;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 12px;
+}
+.nb-ai strong { font-weight: 800; }
