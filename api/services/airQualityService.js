@@ -1,8 +1,3 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
-import fetch from 'node-fetch';
-
 export async function getAirQuality(lat, lng) {
     const now = new Date();
     const endDate = now.toISOString().split('T')[0];
@@ -41,7 +36,6 @@ function calculateAverage(values) {
 
     return sum / values.length;
 }
-
 
 // getAverageAirQuality(37.419734, -122.0827784)
 //   .then((data) => {
