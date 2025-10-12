@@ -1,13 +1,106 @@
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+/* Sidebar */
+.nb-wrap {
+  width: 360px;
+  padding: 16px 20px;
+  background: #0f2336;      /* deep navy */
+  color: #e7eef6;
+  overflow-y: auto;
+  border-right: 1px solid rgba(255,255,255,0.06);
 }
 
+.nb-title {
+  margin: 6px 0 16px;
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.nb-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.nb-section { padding: 8px 8px 12px; }
+.nb-section + .nb-section { border-top: 1px solid rgba(255,255,255,0.06); }
+.nb-section-title {
+  font-size: 20px;
+  font-weight: 700;
+  padding: 10px 6px;
+}
+.nb-section-body { padding: 0 6px 6px; }
+
+.nb-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+.nb-address {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.nb-score-pill {
+  min-width: 42px;
+  text-align: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.15) inset;
+}
+
+.nb-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 12px;
+  background: transparent;
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  color: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+.nb-row:hover { background: rgba(255,255,255,0.04); }
+.nb-chevron { opacity: 0.8; }
+
+.nb-disclosure {
+  padding: 8px 14px 12px;
+  gap: 6px;
+  display: grid;
+  border-top: 1px dashed rgba(255,255,255,0.06);
+}
+.nb-kv { display: flex; justify-content: space-between; }
+.nb-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; opacity: 0.95; }
+
+.nb-raw { padding: 8px 0 0; }
+.nb-copy {
+  appearance: none;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: #e7eef6;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.nb-copy:hover { background: rgba(255,255,255,0.12); }
+.nb-pre {
+  margin-top: 10px;
+  font-size: 14px;
+  line-height: 1.35;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
