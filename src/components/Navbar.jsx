@@ -1,44 +1,24 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { computeFrustration, colorForSigned } from '../utils/frustrationIndex';
 import { useUserWeights } from '../services/userWeights';
 
-/** Escape HTML to avoid injection */
-const escapeHtml = (s = '') =>
-  s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+const escapeHtml = (s='') => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const fmt = (v,d=2) => Number.isFinite(Number(v)) ? Number(v).toFixed(d) : '—';
 
-/** 
- * Format AI text:
- *  - Bold markdown **like this**
- *  - Bold "Lead Words:" at the start of a line (Pros:, Cons:, Summary:, Air Quality:, etc.)
- *  - Preserve newlines
- */
-function renderAiText(str) {
-  if (!str) return '—';
+function renderAiText(str){
+  if(!str) return '—';
   let t = escapeHtml(String(str));
-
-  // Bold markdown **text**
   t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-
-  // Bold leading label words ending with ":" at the start of each line
-  t = t.replace(
-    /(^|\n)(\s*)([A-Z][A-Za-z0-9 \-_/]{1,40}):/g,
-    (_m, a, ws, label) => `${a}${ws}<strong>${label}:</strong>`
-  );
-
-  // Convert newlines to <br>
-  t = t.replace(/\n/g, '<br/>');
-
+  t = t.replace(/(^|\n)(\s*)([A-Z][A-Za-z0-9 \-_/]{1,40}):/g, (_m,a,ws,label)=>`${a}${ws}<strong>${label}:</strong>`);
+  t = t.replace(/\n/g,'<br/>');
   return t;
 }
 
-function Row({ title, onClick }) {
+function Row({ title, open, onClick }) {
   return (
-    <button className="nb-row" onClick={onClick} type="button">
+    <button className="nb-row" onClick={onClick} type="button" aria-expanded={open}>
       <span>{title}</span>
-      <span className="nb-chevron">›</span>
+      <span className={`nb-chevron ${open ? 'nb-chevron-open' : ''}`}>›</span>
     </button>
   );
 }
@@ -52,7 +32,11 @@ function Section({ title, children }) {
   );
 }
 
-export default function Navbar({ data }) {
+// ⬇️ accept collapsed/onToggle as PROPS
+export default function Navbar({ data, collapsed, onToggle }) {
+  const [openAQ, setOpenAQ] = useState(false);
+  const [openLoc, setOpenLoc] = useState(false);
+
   const { weights } = useUserWeights();
   const payload = data?.data ?? data ?? null;
 
@@ -67,38 +51,40 @@ export default function Navbar({ data }) {
   }, [payload]);
 
   const scoreObj = useMemo(() => {
-    if (!payload) return null;
+    if (!payload) return null;  
+
     const densityMean =
-      payload.populationDensity?.mean ??
-      payload.populationDensity?.value ??
-      payload.populationDensity;
+      payload?.populationDensity?.mean ??
+      payload?.populationDensity?.value ??
+      payload?.populationDensity;
 
     const pm25 =
-      payload.airQuality?.pm2_5 ??
-      payload.airQuality?.pm25 ??
-      payload.airQuality?.pm2_5_avg;
+      payload?.airQuality?.pm2_5 ??
+      payload?.airQuality?.pm25 ??
+      payload?.airQuality?.pm2_5_avg;
 
     const { scoreSigned, score01, parts, weights: used } = computeFrustration(
       { densityMean, aqi: pm25 },
       weights
     );
-    return { scoreSigned, score01, parts, usedWeights: used, densityMean, pm25 };
+    return {
+      scoreSigned,
+      score01,
+      parts,
+      usedWeights: used,
+      densityMean: Number(densityMean),
+      pm25: Number(pm25),
+    };
   }, [payload, weights]);
-
-  const [openAQ, setOpenAQ] = useState(false);
-  const [openLoc, setOpenLoc] = useState(false);
 
   const badge = (() => {
     const val = scoreObj?.scoreSigned;
-    const txt =
-      typeof val === 'number' && Number.isFinite(val)
-        ? (val > 0 ? `+${val.toFixed(0)}` : `${val.toFixed(0)}`)
-        : '…';
-    const bg = typeof val === 'number' ? colorForSigned(val) : '#555';
-    return { txt, bg };
+    const display = Number.isFinite(val) ? (val > 0 ? `+${fmt(val, 2)}` : fmt(val, 2)) : '…';
+    const bg = Number.isFinite(val) ? colorForSigned(val) : '#555';
+    return { txt: display, bg, val };
   })();
 
-  // AI response (first)
+  // AI opinion
   const [aiResponse, setAiResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   useEffect(() => {
@@ -111,13 +97,9 @@ export default function Navbar({ data }) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ data }),
         });
-        if (res.ok) {
-          setAiResponse(await res.json());
-        } else {
-          setAiResponse({ status: 'error', message: 'API unavailable' });
-        }
-      } catch (e) {
-        console.error(e);
+        if (res.ok) setAiResponse(await res.json());
+        else setAiResponse({ status: 'error', message: 'API unavailable' });
+      } catch {
         setAiResponse({ status: 'error', message: 'API connection failed' });
       } finally {
         setLoading(false);
@@ -131,11 +113,27 @@ export default function Navbar({ data }) {
       : aiResponse?.data || 'Click the map to get an opinion';
 
   return (
-    <aside className="nb-wrap nb-font">
+    <aside className={`nb-wrap nb-font ${collapsed ? 'nb-collapsed' : ''}`}>
+      <button
+        className="nb-toggle"
+        type="button"
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        onClick={() => onToggle(!collapsed)}
+      >
+        {collapsed ? '«' : '»'}
+      </button>
+
+      <div
+        className="nb-mini-pill"
+        style={{ backgroundColor: badge.bg }}
+        title="Frustration index (–10 pleasing → +10 frustrating)"
+      >
+        {badge.txt}
+      </div>
+
       <h1 className="nb-title">Why not here?</h1>
 
       <div className="nb-card">
-        {/* AI Opinion first */}
         <Section title="AI Opinion">
           <div
             className="nb-ai"
@@ -145,7 +143,6 @@ export default function Navbar({ data }) {
           />
         </Section>
 
-        {/* Summary */}
         <Section title="Summary">
           <div className="nb-summary">
             <div className="nb-address" title={address}>
@@ -154,46 +151,46 @@ export default function Navbar({ data }) {
             <div
               className="nb-score-pill"
               style={{ backgroundColor: badge.bg }}
-              title="Frustration index (–10 pleasing → +10 frustrating)"
+              title={`Frustration index: ${fmt(badge.val, 2)}`}
             >
               {badge.txt}
             </div>
           </div>
         </Section>
 
-        {/* Air Quality */}
-        <Row title="Air Quality" onClick={() => setOpenAQ((s) => !s)} />
+        {/* Air Quality (collapsible) */}
+        <Row title="Air Quality" open={openAQ} onClick={() => setOpenAQ(v => !v)} />
         {openAQ && (
           <div className="nb-disclosure">
             <div className="nb-kv">
               <span>PM2.5</span>
               <span className="nb-mono">
-                {scoreObj?.pm25 ?? '—'} <span className="nb-mono">μg/m³</span>
+                {fmt(scoreObj?.pm25, 2)} <span className="nb-mono">μg/m³</span>
               </span>
             </div>
             <div className="nb-kv">
               <span>Weight</span>
               <span className="nb-mono">
-                {(scoreObj?.usedWeights?.aqi ?? 0).toFixed(2)}
+                {fmt(scoreObj?.usedWeights?.aqi ?? 0, 2)}
               </span>
             </div>
           </div>
         )}
 
-        {/* Location */}
-        <Row title="Location" onClick={() => setOpenLoc((s) => !s)} />
+        {/* Location (collapsible) */}
+        <Row title="Location" open={openLoc} onClick={() => setOpenLoc(v => !v)} />
         {openLoc && (
           <div className="nb-disclosure">
             <div className="nb-kv">
               <span>Pop. density (mean)</span>
               <span className="nb-mono">
-                {scoreObj?.densityMean ?? '—'} /km²
+                {fmt(scoreObj?.densityMean, 2)} /km²
               </span>
             </div>
             <div className="nb-kv">
               <span>Weight</span>
               <span className="nb-mono">
-                {(scoreObj?.usedWeights?.density ?? 0).toFixed(2)}
+                {fmt(scoreObj?.usedWeights?.density ?? 0, 2)}
               </span>
             </div>
           </div>
