@@ -1,4 +1,4 @@
-import { getAirQuality } from './airQualityService.js';
+import { getAverageAirQuality } from './airQualityService.js';
 
 export function handleMapClick(lat, lng) {
 
@@ -6,6 +6,7 @@ export function handleMapClick(lat, lng) {
   let result = {};
 
   result.airQuality = getAverageAirQuality(lat, long);
+  result.noisePollution = getAverageNoisePollution(lat, long);
 
   return true;
 }
