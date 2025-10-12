@@ -35,7 +35,7 @@ function ClickPopup() {
       
       // Call the backend API
       try {
-        const response = await fetch('http://localhost:3000/api/mapOnClick', {
+        const response = await fetch('/api/mapOnClick', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
