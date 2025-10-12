@@ -10,7 +10,7 @@ function Home() {
     return (
             <div className="app">
       <h1 className="main-title">whynotMap</h1>
-      <button className="main-button" onClick={onHomeButton}>why tf not</button>
+      <button className="main-button" onClick={onHomeButton}>why not</button>
     </div>
 
     )
