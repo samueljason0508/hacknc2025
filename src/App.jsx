@@ -1,27 +1,23 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import VoronoiMap from './components/VoronoiMap.jsx'
-import './App.css';
+import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Home from './Home'
+import Login from './Login'
+import Survey from './Survey'
+import MapView from './components/MapView'
 
-function Home() {
-  const navigate = useNavigate();
-
-  return (
-    <div className="app">
-      <h1 className="main-title">Sadness</h1>
-      <button className="main-button" onClick={() => navigate('/map')}>
-        Feel the Pain
-      </button>
-    </div>
-  );
-}
-
-export default function App() {
+function App() {
+  
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/map" element={<VoronoiMap />} />
+        <Route path="/Login" element={<Login />} />
+        <Route path="/survey" element={<Survey />} />
+        <Route path="/map" element={<MapView />} />
       </Routes>
     </Router>
-  );
+  )
 }
+
+export default App
+
