@@ -3,12 +3,15 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "./firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import "./Login.css";
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
+  const [emoji, setEmoji] = useState("•ᴗ•");
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -19,8 +22,14 @@ export default function Login() {
     try {
       // Try logging in first
       await signInWithEmailAndPassword(auth, email, password);
-      setMessage("Logged in successfully!");
+          setEmoji("˃ᴗ˂"); 
+                setMessage("Logged in successfully!");
+
+
+              setTimeout(() => {
       navigate("/survey"); // redirect to survey page
+    }, 1000); // 1 second delay
+
     } catch (err) {
       if (err.code === "auth/user-not-found") {
         // User doesn't exist → create account
@@ -38,26 +47,27 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto", textAlign: "center" }}>
-      <h1>Login / Register</h1>
+    <div className="loginPage">
+      <h1 className="loginTitle">Login <span className="emoji">{emoji}</span></h1>
       <input
         type="email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        style={{ width: "100%", padding: "8px", margin: "10px 0" }}
+        className="email"
       />
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        style={{ width: "100%", padding: "8px", margin: "10px 0" }}
+        className="password"
       />
-      <button onClick={handleLogin} style={{ padding: "10px 20px", cursor: "pointer" }}>
+      {message && <p className="errorMess">{message}</p>}
+      <button onClick={handleLogin} className="loginButton">
         Submit
       </button>
-      {message && <p style={{ marginTop: "10px" }}>{message}</p>}
+      
     </div>
   );
 }
