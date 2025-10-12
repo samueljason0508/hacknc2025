@@ -1,17 +1,10 @@
 import { handleMapClick } from '../services/mapService.js';
 
-export function mapOnClickController(req, res) {
+export async function mapOnClickController(req, res) {
   try {
-    const { lat, lng, containerPoint, layerPoint, type } = req.body;
+    const { lat, lng } = req.body;
 
-    console.log('Raw request body:', req.body);
-    console.log('Received map click from frontend:');
-    console.log('Lat:', lat, 'Lng:', lng);
-    console.log('Container point:', containerPoint);
-    console.log('Layer point:', layerPoint);
-    console.log('Type:', type);
-
-    const result = handleMapClick(lat, lng);
+    const result = await handleMapClick(lat, lng);
 
     res.status(200).json({
       status: 'ok',

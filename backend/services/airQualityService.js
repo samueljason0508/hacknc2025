@@ -3,7 +3,7 @@ dotenv.config();
 
 import fetch from 'node-fetch';
 
-export async function getAverageAirQuality(lat, lng) {
+export async function getAirQuality(lat, lng) {
     const now = new Date();
     const endDate = now.toISOString().split('T')[0];
 
@@ -43,10 +43,10 @@ function calculateAverage(values) {
 }
 
 
-getAverageAirQuality(37.419734, -122.0827784)
-  .then((data) => {
-    console.log('Air Quality Data:\n', JSON.stringify(data, null, 2));
-  })
-  .catch((err) => {
-    console.error('Error:', err.message);
-  });
+// getAverageAirQuality(37.419734, -122.0827784)
+//   .then((data) => {
+//     console.log('Air Quality Data:\n', JSON.stringify(data, null, 2));
+//   })
+//   .catch((err) => {
+//     console.error('Error:', err.message);
+//   });
