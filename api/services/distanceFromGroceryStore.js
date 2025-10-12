@@ -1,5 +1,5 @@
 // distanceFromGroceryStore.js
-const GMAPS_KEY = 'AIzaSyDdyqzI7QNAgR4tud6YrRfT3zXzj-3DbUI'; // set on the server (e.g., Next.js)
+const GMAPS_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 export async function getDistanceToNearestGrocery(lat, lng, {
   mode = "driving",
