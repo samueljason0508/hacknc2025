@@ -22,5 +22,7 @@ export async function handleMapClick(lat, lng) {
     return "No data found";
   }
 
+  console.log(JSON.stringify(result, null, 2));
+
   return result;
 }

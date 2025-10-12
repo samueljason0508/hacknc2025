@@ -36,6 +36,7 @@ function Section({ title, children }) {
 export default function Navbar({ data, collapsed, onToggle }) {
   const [openAQ, setOpenAQ] = useState(false);
   const [openLoc, setOpenLoc] = useState(false);
+  const [openGrocery, setOpenGrocery] = useState(false);
 
   const { weights } = useUserWeights();
   const payload = data?.data ?? data ?? null;
@@ -193,6 +194,45 @@ export default function Navbar({ data, collapsed, onToggle }) {
                 {fmt(scoreObj?.usedWeights?.density ?? 0, 2)}
               </span>
             </div>
+          </div>
+        )}
+
+        {/* Grocery Store (collapsible) */}
+        <Row title="Nearest Grocery Store" open={openGrocery} onClick={() => setOpenGrocery(v => !v)} />
+        {openGrocery && (
+          <div className="nb-disclosure">
+            {payload?.getDistanceToNearestGrocery ? (
+              <>
+                <div className="nb-kv">
+                  <span>Store</span>
+                  <span className="nb-mono">
+                    {payload.getDistanceToNearestGrocery.storeName || '—'}
+                  </span>
+                </div>
+                <div className="nb-kv">
+                  <span>Address</span>
+                  <span className="nb-mono">
+                    {payload.getDistanceToNearestGrocery.address || '—'}
+                  </span>
+                </div>
+                <div className="nb-kv">
+                  <span>Distance</span>
+                  <span className="nb-mono">
+                    {payload.getDistanceToNearestGrocery.distance_text || '—'}
+                  </span>
+                </div>
+                <div className="nb-kv">
+                  <span>Drive time</span>
+                  <span className="nb-mono">
+                    {payload.getDistanceToNearestGrocery.duration_text || '—'}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className="nb-kv">
+                <span>No data available</span>
+              </div>
+            )}
           </div>
         )}
       </div>
