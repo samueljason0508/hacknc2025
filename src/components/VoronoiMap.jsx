@@ -84,7 +84,7 @@ export default function VoronoiMap() {
   const [position, setPosition] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
 
-  const { weights } = useUserWeights();
+  const { weights, loading } = useUserWeights();
 
   // Load base GeoJSON (served from /public)
   useEffect(() => {
@@ -162,7 +162,7 @@ export default function VoronoiMap() {
             attribution="&copy; OpenStreetMap contributors"
           />
 
-          {geo && (
+          {geo && !loading && (
             <>
               <GeoJSON
                 data={geo}
