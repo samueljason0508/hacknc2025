@@ -1,14 +1,14 @@
-// src/components/VoronoiMap.jsx (or MapView.jsx)
 import { MapContainer, TileLayer, GeoJSON, Marker, CircleMarker, useMap, useMapEvents } from 'react-leaflet';
 import { useEffect, useState, useCallback } from 'react';
 import Navbar from './Navbar';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import '../App.css';
 
 import { useUserWeights } from '../services/userWeights';
 import { computeFrustration, colorForSigned } from '../utils/frustrationIndex';
 
-// --- red marker icon ---
+// Red marker icon
 const redIcon = new L.Icon({
   iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
@@ -18,7 +18,6 @@ const redIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-// --- fit map to geojson bounds ---
 function FitToData({ data }) {
   const map = useMap();
   useEffect(() => {
@@ -29,7 +28,7 @@ function FitToData({ data }) {
   return null;
 }
 
-// --- legend (–10 .. +10) ---
+// Legend that matches SCORE_BREAKS in frustrationIndex.js
 function LegendSigned() {
   const map = useMap();
   useEffect(() => {
@@ -41,7 +40,6 @@ function LegendSigned() {
       { c: '#DB7B2B', label: '+3 to +7' },
       { c: '#CC3232', label: '≥ +7' },
     ];
-
     const div = L.DomUtil.create('div', 'info legend');
     Object.assign(div.style, {
       background: 'white',
@@ -49,16 +47,12 @@ function LegendSigned() {
       borderRadius: '6px',
       lineHeight: '1.2',
     });
-
     div.innerHTML =
-      '<div><b>Pleasant ↔ Frustrating</b></div>' +
-      rows
-        .map(
-          (r) =>
-            `<div><span style="background:${r.c};display:inline-block;width:12px;height:12px;margin-right:6px;"></span>${r.label}</div>`
-        )
-        .join('');
-
+      `<div><b>Pleasant ↔ Frustrating</b></div>` +
+      rows.map(r => (
+        `<div><span style="background:${r.c};display:inline-block;width:12px;height:12px;margin-right:6px;"></span>${r.label}</div>`
+      )).join('') +
+      `<div style="margin-top:4px;font-size:11px;">–10 pleasing · +10 frustrating</div>`;
     const ctrl = L.control({ position: 'bottomright' });
     ctrl.onAdd = () => div;
     ctrl.addTo(map);
@@ -67,7 +61,6 @@ function LegendSigned() {
   return null;
 }
 
-// --- click handler hook ---
 function MapClickHandler({ onClick }) {
   useMapEvents({
     click: (e) => onClick(e.latlng),
@@ -75,17 +68,17 @@ function MapClickHandler({ onClick }) {
   return null;
 }
 
-// --- invalidate map size when sidebar collapses/expands ---
+// When the sidebar opens/closes, tell Leaflet to recompute its size.
 function MapResizer({ trigger }) {
   const map = useMap();
   useEffect(() => {
-    const t = setTimeout(() => map.invalidateSize({ animate: false }), 220); // keep in sync with CSS transition
+    const t = setTimeout(() => map.invalidateSize({ animate: false }), 220); // ~match CSS transition
     return () => clearTimeout(t);
   }, [trigger, map]);
   return null;
 }
 
-export default function MapView() {
+export default function VoronoiMap() {
   const [data, setData] = useState(null);
   const [geo, setGeo] = useState(null);
   const [position, setPosition] = useState(null);
@@ -104,14 +97,16 @@ export default function MapView() {
       .catch((err) => console.error('GeoJSON load failed:', err));
   }, []);
 
-  // Style polygons using frustration score (currently using density mean from the file)
+  // Style polygons using the composite score (density now, add factors later)
   const styleFn = (f) => {
     const p = f?.properties ?? {};
-    const raw = {
-      densityMean: p.mean, // available in your GeoJSON
-      // aqi, noiseDb, rentUsd, transitGood01 can be added later
-    };
-    const { scoreSigned } = computeFrustration(raw, weights);
+    const { scoreSigned } = computeFrustration(
+      {
+        densityMean: p.mean,
+        // aqi, noiseDb, rentUsd, transitGood01 can be added here later
+      },
+      weights
+    );
     return {
       color: '#555',
       weight: 0.6,
@@ -121,8 +116,8 @@ export default function MapView() {
     };
   };
 
-  const onEach = (f, layer) => {
-    // allow polygon click to drive the sidebar
+  // Bind clicks to push to sidebar via /api/mapOnClick
+  const onEach = (_f, layer) => {
     layer.on('click', (e) => handleClick(e.latlng));
   };
 
@@ -146,11 +141,10 @@ export default function MapView() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', height: '100vh' }}>
-      {/* Pass collapsed + onToggle so the sidebar can control its state */}
+    <div className="app-shell">
       <Navbar data={data} collapsed={collapsed} onToggle={setCollapsed} />
 
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div className="map-shell">
         <MapContainer
           center={[39.5, -98.35]}
           zoom={5}
@@ -170,7 +164,12 @@ export default function MapView() {
 
           {geo && !loading && (
             <>
-              <GeoJSON data={geo} style={styleFn} onEachFeature={onEach} bubblingMouseEvents />
+              <GeoJSON
+                data={geo}
+                style={styleFn}
+                onEachFeature={onEach}
+                bubblingMouseEvents
+              />
               <FitToData data={geo} />
               <LegendSigned />
             </>

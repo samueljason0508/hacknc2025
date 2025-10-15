@@ -21,8 +21,8 @@ export async function handleMapClick(lat, lng) {
   if (result.populationDensity?.message === "Location not found in dataset") {
     return "No data found";
   }
-
   console.log(JSON.stringify(result, null, 2));
+
 
   return result;
 }

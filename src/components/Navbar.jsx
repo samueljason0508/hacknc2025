@@ -1,16 +1,25 @@
 import { useState, useEffect, useMemo } from 'react';
 import { computeFrustration, colorForSigned } from '../utils/frustrationIndex';
 import { useUserWeights } from '../services/userWeights';
+import '../App.css';
 
-const escapeHtml = (s='') => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const fmt = (v,d=2) => Number.isFinite(Number(v)) ? Number(v).toFixed(d) : '—';
+const escapeHtml = (s = '') =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-function renderAiText(str){
-  if(!str) return '—';
+const fmt = (v, d = 2) =>
+  Number.isFinite(Number(v)) ? Number(v).toFixed(d) : '—';
+
+function renderAiText(str) {
+  if (!str) return '—';
   let t = escapeHtml(String(str));
+  // keep any existing **bold** from the model
   t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  t = t.replace(/(^|\n)(\s*)([A-Z][A-Za-z0-9 \-_/]{1,40}):/g, (_m,a,ws,label)=>`${a}${ws}<strong>${label}:</strong>`);
-  t = t.replace(/\n/g,'<br/>');
+  // make "Label:" patterns bold too
+  t = t.replace(
+    /(^|\n)(\s*)([A-Z][A-Za-z0-9 \-_/]{1,40}):/g,
+    (_m, a, ws, label) => `${a}${ws}<strong>${label}:</strong>`
+  );
+  t = t.replace(/\n/g, '<br/>');
   return t;
 }
 
@@ -32,37 +41,32 @@ function Section({ title, children }) {
   );
 }
 
-// ⬇️ accept collapsed/onToggle as PROPS
 export default function Navbar({ data, collapsed, onToggle }) {
   const [openAQ, setOpenAQ] = useState(false);
   const [openLoc, setOpenLoc] = useState(false);
-  const [openGrocery, setOpenGrocery] = useState(false);
-  const [openSummary, setOpenSummary] = useState(false);
 
   const { weights } = useUserWeights();
   const payload = data?.data ?? data ?? null;
 
   const address = useMemo(() => {
     const loc = payload?.locationDetails || {};
-    // Handle formatted_address or display_name
-    if (loc.formatted_address) return loc.formatted_address;
-    if (loc.display_name) return loc.display_name;
-    
-    // Fallback: construct from address object (OpenStreetMap format)
-    const addr = loc.address || {};
-    const parts = [
-      addr.road || loc.street,
-      addr.city || addr.county,
-      addr.state,
-      addr.country || loc.country
-    ].filter(Boolean);
-    
-    return parts.length > 0 ? parts.join(', ') : 'Click the map';
+    return (
+      loc.formatted_address ||
+      loc.display_name ||
+      [loc.street, loc.city, loc.state, loc.country].filter(Boolean).join(', ') ||
+      'Click the map'
+    );
   }, [payload]);
 
   const scoreObj = useMemo(() => {
-    if (!payload) return null;  
+    if (!payload) return null;
 
+    // If server provides a pre-baked cell score, prefer it
+    if (Number.isFinite(Number(payload.cellScoreSigned))) {
+      return { scoreSigned: Number(payload.cellScoreSigned) };
+    }
+
+    // Otherwise compute from available raw metrics
     const densityMean =
       payload?.populationDensity?.mean ??
       payload?.populationDensity?.value ??
@@ -87,11 +91,14 @@ export default function Navbar({ data, collapsed, onToggle }) {
     };
   }, [payload, weights]);
 
+  // Badge styling and text (2 decimals)
   const badge = (() => {
     const val = scoreObj?.scoreSigned;
-    const display = Number.isFinite(val) ? (val > 0 ? `+${fmt(val, 2)}` : fmt(val, 2)) : '…';
+    const txt = Number.isFinite(val)
+      ? (val > 0 ? `+${fmt(val, 2)}` : fmt(val, 2))
+      : '…';
     const bg = Number.isFinite(val) ? colorForSigned(val) : '#555';
-    return { txt: display, bg, val };
+    return { txt, bg, val };
   })();
 
   // AI opinion
@@ -124,6 +131,7 @@ export default function Navbar({ data, collapsed, onToggle }) {
 
   return (
     <aside className={`nb-wrap nb-font ${collapsed ? 'nb-collapsed' : ''}`}>
+      {/* Collapse toggle (parent controls state) */}
       <button
         className="nb-toggle"
         type="button"
@@ -133,6 +141,7 @@ export default function Navbar({ data, collapsed, onToggle }) {
         {collapsed ? '«' : '»'}
       </button>
 
+      {/* Mini score pill stays visible when collapsed */}
       <div
         className="nb-mini-pill"
         style={{ backgroundColor: badge.bg }}
@@ -144,6 +153,7 @@ export default function Navbar({ data, collapsed, onToggle }) {
       <h1 className="nb-title">Why not here?</h1>
 
       <div className="nb-card">
+        {/* AI Opinion FIRST */}
         <Section title="AI Opinion">
           <div
             className="nb-ai"
@@ -153,47 +163,21 @@ export default function Navbar({ data, collapsed, onToggle }) {
           />
         </Section>
 
-        {/* Summary (collapsible) */}
-        <Row title="Summary" open={openSummary} onClick={() => setOpenSummary(v => !v)} />
-        {openSummary && (
-          <div className="nb-disclosure">
-            <div className="nb-kv">
-              <span>Address</span>
-              <span className="nb-mono" title={address}>
-                {address}
-              </span>
+        {/* Summary */}
+        <Section title="Summary">
+          <div className="nb-summary">
+            <div className="nb-address" title={address}>
+              {address}
             </div>
-            <div className="nb-kv">
-              <span>Frustration Index</span>
-              <span
-                className="nb-mono"
-                style={{ 
-                  backgroundColor: badge.bg, 
-                  padding: '2px 8px', 
-                  borderRadius: '4px',
-                  color: 'white'
-                }}
-                title={`Frustration index: ${fmt(badge.val, 2)}`}
-              >
-                {badge.txt}
-              </span>
-            </div>
-            <div className="nb-kv">
-              <span>Place ID</span>
-              <span className="nb-mono">
-                {payload?.locationDetails?.place_id || '—'}
-              </span>
-            </div>
-            <div className="nb-kv">
-              <span>Coordinates</span>
-              <span className="nb-mono">
-                {payload?.locationDetails?.lat && payload?.locationDetails?.lon
-                  ? `${fmt(payload.locationDetails.lat, 6)}, ${fmt(payload.locationDetails.lon, 6)}`
-                  : '—'}
-              </span>
+            <div
+              className="nb-score-pill"
+              style={{ backgroundColor: badge.bg }}
+              title={`Frustration index: ${fmt(badge.val, 2)}`}
+            >
+              {badge.txt}
             </div>
           </div>
-        )}
+        </Section>
 
         {/* Air Quality (collapsible) */}
         <Row title="Air Quality" open={openAQ} onClick={() => setOpenAQ(v => !v)} />
@@ -207,9 +191,7 @@ export default function Navbar({ data, collapsed, onToggle }) {
             </div>
             <div className="nb-kv">
               <span>Weight</span>
-              <span className="nb-mono">
-                {fmt(scoreObj?.usedWeights?.aqi ?? 0, 2)}
-              </span>
+              <span className="nb-mono">{fmt(scoreObj?.usedWeights?.aqi ?? 0, 2)}</span>
             </div>
           </div>
         )}
@@ -220,55 +202,12 @@ export default function Navbar({ data, collapsed, onToggle }) {
           <div className="nb-disclosure">
             <div className="nb-kv">
               <span>Pop. density (mean)</span>
-              <span className="nb-mono">
-                {fmt(scoreObj?.densityMean, 2)} /km²
-              </span>
+              <span className="nb-mono">{fmt(scoreObj?.densityMean, 2)} /km²</span>
             </div>
             <div className="nb-kv">
               <span>Weight</span>
-              <span className="nb-mono">
-                {fmt(scoreObj?.usedWeights?.density ?? 0, 2)}
-              </span>
+              <span className="nb-mono">{fmt(scoreObj?.usedWeights?.density ?? 0, 2)}</span>
             </div>
-          </div>
-        )}
-
-        {/* Grocery Store (collapsible) */}
-        <Row title="Nearest Grocery Store" open={openGrocery} onClick={() => setOpenGrocery(v => !v)} />
-        {openGrocery && (
-          <div className="nb-disclosure">
-            {payload?.getDistanceToNearestGrocery ? (
-              <>
-                <div className="nb-kv">
-                  <span>Store</span>
-                  <span className="nb-mono">
-                    {payload.getDistanceToNearestGrocery.storeName || '—'}
-                  </span>
-                </div>
-                <div className="nb-kv">
-                  <span>Address</span>
-                  <span className="nb-mono">
-                    {payload.getDistanceToNearestGrocery.address || '—'}
-                  </span>
-                </div>
-                <div className="nb-kv">
-                  <span>Distance</span>
-                  <span className="nb-mono">
-                    {payload.getDistanceToNearestGrocery.distance_text || '—'}
-                  </span>
-                </div>
-                <div className="nb-kv">
-                  <span>Drive time</span>
-                  <span className="nb-mono">
-                    {payload.getDistanceToNearestGrocery.duration_text || '—'}
-                  </span>
-                </div>
-              </>
-            ) : (
-              <div className="nb-kv">
-                <span>No data available</span>
-              </div>
-            )}
           </div>
         )}
       </div>
